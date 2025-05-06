@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 )
 
@@ -12,10 +13,10 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) GetUser(tg_id int64) (*UserRepo, error) {
+func (r *UserRepository) GetUser(ctx context.Context, tg_id int64) (*UserRepo, error) {
 	var user UserRepo
 	var head, body, legs, foot sql.NullString
-	err := r.db.QueryRow(
+	err := r.db.QueryRowContext(ctx,
 		"SELECT id, tg_id, username, balance, level, energy, max_energy, profit_per_hour, head, body, legs, foot, profit_for_tap, last_restoration, last_profit_per_hour FROM users WHERE tg_id = $1", 
 		tg_id,
 	).Scan(
@@ -41,9 +42,9 @@ func (r *UserRepository) GetUser(tg_id int64) (*UserRepo, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) CreateUser(tg_id int64, username string) (*UserRepo, error) {
+func (r *UserRepository) CreateUser(ctx context.Context, tg_id int64, username string) (*UserRepo, error) {
 	var user UserRepo
-	err := r.db.QueryRow(
+	err := r.db.QueryRowContext(ctx,
 		`INSERT INTO users (tg_id, username) 
 		VALUES ($1, $2) 
 		RETURNING id, tg_id, username, balance, level, energy, max_energy, profit_per_hour, head, body, legs, last_profit_per_hour`,
@@ -57,9 +58,9 @@ func (r *UserRepository) CreateUser(tg_id int64, username string) (*UserRepo, er
 	return &user, nil
 }
 
-func (r *UserRepository) SelectProfitForTap(tg_id int64) (int, error) {
+func (r *UserRepository) SelectProfitForTap(ctx context.Context, tg_id int64) (int, error) {
 	var profit int
-	err := r.db.QueryRow("SELECT profit_for_tap FROM users WHERE tg_id = $1", tg_id).Scan(&profit)
+	err := r.db.QueryRowContext(ctx, "SELECT profit_for_tap FROM users WHERE tg_id = $1", tg_id).Scan(&profit)
 	if err != nil {
 		return 0, err
 	}
@@ -69,17 +70,17 @@ func (r *UserRepository) SelectProfitForTap(tg_id int64) (int, error) {
 	return profit, nil
 }
 
-func (r *UserRepository) UpdateBalanceForTap(tg_id int64, balance int) error {
-	_, err := r.db.Exec("UPDATE users SET balance = balance + $1, energy = energy - 1 WHERE tg_id = $2", balance, tg_id)
+func (r *UserRepository) UpdateBalanceForTap(ctx context.Context, tg_id int64, balance int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE users SET balance = balance + $1, energy = energy - 1 WHERE tg_id = $2", balance, tg_id)
 	return err
 }
 
-func (r *UserRepository) UpdateEnergy(tg_id int64, energy int) error {
-	_, err := r.db.Exec("UPDATE users SET energy = energy + $1, last_restoration = NOW() WHERE tg_id = $2", energy, tg_id)
+func (r *UserRepository) UpdateEnergy(ctx context.Context, tg_id int64, energy int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE users SET energy = energy + $1, last_restoration = NOW() WHERE tg_id = $2", energy, tg_id)
 	return err
 }
 
-func (r *UserRepository) UpdateBalanceForProfitPerHour(tg_id int64, balance int) error {
-	_, err := r.db.Exec("UPDATE users SET balance = $1, last_profit_per_hour = NOW() WHERE tg_id = $2", balance, tg_id)
+func (r *UserRepository) UpdateBalanceForProfitPerHour(ctx context.Context, tg_id int64, balance int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE users SET balance = $1, last_profit_per_hour = NOW() WHERE tg_id = $2", balance, tg_id)
 	return err
 }
