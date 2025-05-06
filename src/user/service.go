@@ -225,7 +225,7 @@ func (s *Service) CreateUserHandler(c echo.Context) error {
 		"username": telegramUser.Username,
 	}).Info("Получен telegramUser")
 	
-	user, err := s.repo.CreateUser(telegramUser.ID, telegramUser.Username)
+	user, err := s.repo.CreateUser(c.Request().Context(), telegramUser.ID, telegramUser.Username)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при создании пользователя")
 		return c.JSON(500, err.Error())

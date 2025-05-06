@@ -23,10 +23,9 @@ func NewWorkerService(repo *WorkerRepository, userService user.UserService) *Wor
 	}
 }
 
-
 func (s *WorkerService) GetWorkers(c echo.Context) error {
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	user, err := s.userService.GetUser(telegramUser.ID)
+	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
 		return err
@@ -46,7 +45,7 @@ func (s *WorkerService) GetWorkers(c echo.Context) error {
 
 func (s *WorkerService) GetArmy(c echo.Context) error {
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	user, err := s.userService.GetUser(telegramUser.ID)
+	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
 		return err
@@ -138,7 +137,7 @@ func (s *WorkerService) BuyWorker(c echo.Context) error {
 	}
 
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	user, err := s.userService.GetUser(telegramUser.ID)
+	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
 		return err

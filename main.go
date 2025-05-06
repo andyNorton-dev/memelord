@@ -17,6 +17,11 @@ import (
 // @description API сервер для управления пользователями, работниками и одеждой
 // @host localhost:8081
 // @BasePath /
+
+// @securityDefinitions.apikey TelegramAuth
+// @in header
+// @name X-Telegram-Init-Data
+// @description Данные инициализации Telegram WebApp
 func main() {
 	e := echo.New()
 	

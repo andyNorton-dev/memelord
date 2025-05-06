@@ -30,14 +30,41 @@ func (h *UserHandler) RegisterRoutes(e *echo.Echo) {
 	userGroup.POST("/tap", h.TapUser)
 }
 
+// @Summary Получить пользователя
+// @Description Получает информацию о текущем пользователе
+// @Tags user
+// @Accept json
+// @Produce json
+// @Success 200 {object} UserResponse
+// @Failure 500 {object} map[string]string
+// @Router /user [get]
+// @Security TelegramAuth
 func (h *UserHandler) GetUser(c echo.Context) error {
 	return h.service.GetUserHandler(c)
 }
 
+// @Summary Создать пользователя
+// @Description Создает нового пользователя
+// @Tags user
+// @Accept json
+// @Produce json
+// @Success 200 {object} UserRepo
+// @Failure 500 {object} map[string]string
+// @Router /user [post]
+// @Security TelegramAuth
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	return h.service.CreateUserHandler(c)
 }
 
+// @Summary Тап пользователя
+// @Description Выполняет действие тапа для пользователя
+// @Tags user
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]string
+// @Router /user/tap [post]
+// @Security TelegramAuth
 func (h *UserHandler) TapUser(c echo.Context) error {
 	return h.service.TapUserHandler(c)
 }

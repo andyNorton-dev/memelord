@@ -1,9 +1,513 @@
 basePath: /
+definitions:
+  clothes.ClotheUserResponse:
+    properties:
+      can_buy:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_bought:
+        type: boolean
+      name:
+        type: string
+      per_for_tap:
+        type: integer
+      plus_energy:
+        type: integer
+      price:
+        type: integer
+      rarity:
+        type: string
+      type:
+        type: string
+      url_image:
+        type: string
+    type: object
+  indexer.AddToIndexResponse:
+    properties:
+      added:
+        type: integer
+      new_value:
+        type: integer
+      old_value:
+        type: integer
+    type: object
+  indexer.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  user.UserRepo:
+    properties:
+      balance:
+        type: integer
+      body:
+        type: string
+      energy:
+        type: integer
+      foot:
+        type: string
+      hand:
+        type: string
+      head:
+        type: string
+      id:
+        type: integer
+      last_profit_per_hour:
+        type: string
+      last_restoration:
+        type: string
+      legs:
+        type: string
+      level:
+        type: integer
+      max_energy:
+        type: integer
+      profit_for_tap:
+        type: integer
+      profit_per_hour:
+        type: integer
+      tg_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  user.UserResponse:
+    properties:
+      balance:
+        type: integer
+      body:
+        type: string
+      energy:
+        type: integer
+      foot:
+        type: string
+      hand:
+        type: string
+      head:
+        type: string
+      legs:
+        type: string
+      level:
+        type: integer
+      max_energy:
+        type: integer
+      profit_for_tap:
+        type: integer
+      profit_per_hour:
+        type: integer
+      username:
+        type: string
+    type: object
+  workers.UserWorkerResponse:
+    properties:
+      access_to_upgrade:
+        type: boolean
+      cost:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
+      profit:
+        type: integer
+      url_image:
+        type: string
+    type: object
 host: localhost:8081
 info:
   contact: {}
   description: API сервер для управления пользователями, работниками и одеждой
   title: API Documentation
   version: "1.0"
-paths: {}
+paths:
+  /clothes:
+    get:
+      consumes:
+      - application/json
+      description: Получает список доступной одежды
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clothes.ClotheUserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Получить список одежды
+      tags:
+      - clothes
+  /clothes/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Получает информацию о конкретном предмете одежды
+      parameters:
+      - description: ID предмета одежды
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clothes.ClotheUserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Получить предмет одежды
+      tags:
+      - clothes
+  /clothes/buy/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Покупает предмет одежды
+      parameters:
+      - description: ID предмета одежды
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clothes.ClotheUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Купить предмет одежды
+      tags:
+      - clothes
+  /clothes/equip/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Экипирует предмет одежды
+      parameters:
+      - description: ID предмета одежды
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clothes.ClotheUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Экипировать предмет одежды
+      tags:
+      - clothes
+  /index:
+    get:
+      consumes:
+      - application/json
+      description: Получает текущее значение индекса
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/indexer.ErrorResponse'
+      security:
+      - TelegramAuth: []
+      summary: Получить текущий индекс
+      tags:
+      - indexer
+    post:
+      consumes:
+      - application/json
+      description: Увеличивает значение индекса на 1
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/indexer.ErrorResponse'
+      security:
+      - TelegramAuth: []
+      summary: Увеличить индекс
+      tags:
+      - indexer
+  /index/add:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет указанное число к текущему значению индекса
+      parameters:
+      - description: Число для добавления
+        in: query
+        name: number
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/indexer.AddToIndexResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/indexer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/indexer.ErrorResponse'
+      security:
+      - TelegramAuth: []
+      summary: Добавить к индексу
+      tags:
+      - indexer
+  /index/double:
+    post:
+      consumes:
+      - application/json
+      description: Удваивает текущее значение индекса
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/indexer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/indexer.ErrorResponse'
+      security:
+      - TelegramAuth: []
+      summary: Удвоить индекс
+      tags:
+      - indexer
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Получает информацию о текущем пользователе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Получить пользователя
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserRepo'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Создать пользователя
+      tags:
+      - user
+  /user/tap:
+    post:
+      consumes:
+      - application/json
+      description: Выполняет действие тапа для пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Тап пользователя
+      tags:
+      - user
+  /workers/army:
+    get:
+      consumes:
+      - application/json
+      description: Получает список доступных воинов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/workers.UserWorkerResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Получить армию
+      tags:
+      - workers
+  /workers/buy/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Покупает или улучшает работника
+      parameters:
+      - description: ID работника
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/workers.UserWorkerResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Купить работника
+      tags:
+      - workers
+  /workers/worker:
+    get:
+      consumes:
+      - application/json
+      description: Получает список доступных работников
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/workers.UserWorkerResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - TelegramAuth: []
+      summary: Получить список работников
+      tags:
+      - workers
+securityDefinitions:
+  TelegramAuth:
+    description: Данные инициализации Telegram WebApp
+    in: header
+    name: X-Telegram-Init-Data
+    type: apiKey
 swagger: "2.0"

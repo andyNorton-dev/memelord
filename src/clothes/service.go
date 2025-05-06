@@ -22,7 +22,7 @@ func NewClothesService(repo *ClothesRepository, userService user.UserService) *C
 
 func (s *ClothesService) GetClothes(c echo.Context) error {
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	user, err := s.userService.GetUser(telegramUser.ID)
+	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка при получении пользователя"})
@@ -62,7 +62,7 @@ func (s *ClothesService) GetClothe(c echo.Context) error {
 	}
 	
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	user, err := s.userService.GetUser(telegramUser.ID)
+	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка при получении пользователя"})
@@ -140,7 +140,7 @@ func (s *ClothesService) BuyClothe(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка при получении одежды"})
 	}
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	user, err := s.userService.GetUser(telegramUser.ID)
+	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка при получении пользователя"})
@@ -169,7 +169,7 @@ func (s *ClothesService) EquipClothe(c echo.Context) error {
 	}
 	
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	user, err := s.userService.GetUser(telegramUser.ID)
+	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
 		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка при получении пользователя"})

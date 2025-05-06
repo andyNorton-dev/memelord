@@ -7,6 +7,61 @@ import (
 	"strconv"
 )
 
+// @Summary Получить текущий индекс
+// @Description Получает текущее значение индекса
+// @Tags indexer
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]int
+// @Failure 500 {object} ErrorResponse
+// @Router /index [get]
+// @Security TelegramAuth
+func (h *IndexHandler) GetIndex(c echo.Context) error {
+	return h.service.GetCurrentIndex(c)
+}
+
+// @Summary Увеличить индекс
+// @Description Увеличивает значение индекса на 1
+// @Tags indexer
+// @Accept json
+// @Produce json
+// @Success 204 "No Content"
+// @Failure 500 {object} ErrorResponse
+// @Router /index [post]
+// @Security TelegramAuth
+func (h *IndexHandler) AddIndex(c echo.Context) error {
+	return h.service.IncrementIndex(c)
+}
+
+// @Summary Удвоить индекс
+// @Description Удваивает текущее значение индекса
+// @Tags indexer
+// @Accept json
+// @Produce json
+// @Success 204 "No Content"
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /index/double [post]
+// @Security TelegramAuth
+func (h *IndexHandler) DoubleIndex(c echo.Context) error {
+	return h.service.DoubleIndex(c)
+}
+
+// @Summary Добавить к индексу
+// @Description Добавляет указанное число к текущему значению индекса
+// @Tags indexer
+// @Accept json
+// @Produce json
+// @Param number query int true "Число для добавления"
+// @Success 200 {object} AddToIndexResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /index/add [post]
+// @Security TelegramAuth
+func (h *IndexHandler) AddToIndex(c echo.Context) error {
+	return h.service.AddToIndex(c)
+}
+
 type IndexHandler struct {
 	service *IndexService
 }
@@ -41,22 +96,6 @@ func (h *IndexHandler) RegisterRoutes(e *echo.Echo) {
 	e.POST("/index", h.AddIndex)
 	e.POST("/index/double", h.DoubleIndex)
 	e.POST("/index/add", h.AddToIndex, validateAddToIndex)
-}
-
-func (h *IndexHandler) GetIndex(c echo.Context) error {
-	return h.service.GetCurrentIndex(c)
-}
-
-func (h *IndexHandler) AddIndex(c echo.Context) error {
-	return h.service.IncrementIndex(c)
-}
-
-func (h *IndexHandler) DoubleIndex(c echo.Context) error {
-	return h.service.DoubleIndex(c)
-}
-
-func (h *IndexHandler) AddToIndex(c echo.Context) error {
-	return h.service.AddToIndex(c)
 }
 
 // SetupIndexer инициализирует сервис и регистрирует роуты
