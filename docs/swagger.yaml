@@ -1,0 +1,9 @@
+basePath: /
+host: localhost:8081
+info:
+  contact: {}
+  description: API сервер для управления пользователями, работниками и одеждой
+  title: API Documentation
+  version: "1.0"
+paths: {}
+swagger: "2.0"

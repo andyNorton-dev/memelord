@@ -1,0 +1,24 @@
+добавь таблицу workers со следующими полями 
+1 - id - primary key
+2 - name - варчар 45
+3 - description - text
+
+добавь таблицу workers_upgrade со следующими полями
+1 - id - primary key
+2 - id_wokers - int
+3 - level - int 
+4 - cost - int 
+5 - profit - int
+
+добавь таблицу user_workers со следующими полями
+1 - id - primary key
+2 - id_wokers - int
+3 - id_upgrade - int
+
+
+добавь все эти таблицы в постгрес который запущен через докер вот креды 
+host     = "localhost"
+	port     = 5432
+	user     = "root"
+	password = "root"
+	dbname   = "gobd"
