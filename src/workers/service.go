@@ -5,11 +5,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"api/src/middleware"
 	"api/src/user"
-	"github.com/sirupsen/logrus"
+	"api/src/core/loger"
 	"strconv"
+	"go.uber.org/zap"
 )
-
-var log = logrus.New()
 
 type WorkerService struct {
 	repo *WorkerRepository
@@ -27,17 +26,21 @@ func (s *WorkerService) GetWorkers(c echo.Context) error {
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
 	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
+		loger.Logger.Error("Ошибка при получении пользователя",
+			zap.Error(err),
+			zap.Int64("user_id", telegramUser.ID))
 		return err
 	}
 	workers, err := s.repo.GetWorkers()
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении работников")
+		loger.Logger.Error("Ошибка при получении работников",
+			zap.Error(err))
 		return err
 	}
 	result, err := s.GetWorkersOrArmy(workers, user)
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении работников")
+		loger.Logger.Error("Ошибка при получении работников",
+			zap.Error(err))
 		return err
 	}
 	return c.JSON(200, result)
@@ -47,17 +50,21 @@ func (s *WorkerService) GetArmy(c echo.Context) error {
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
 	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
+		loger.Logger.Error("Ошибка при получении пользователя",
+			zap.Error(err),
+			zap.Int64("user_id", telegramUser.ID))
 		return err
 	}
 	army, err := s.repo.GetArmy()
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении работников")
+		loger.Logger.Error("Ошибка при получении работников",
+			zap.Error(err))
 		return err
 	}
 	result, err := s.GetWorkersOrArmy(army, user)
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении работников")
+		loger.Logger.Error("Ошибка при получении работников",
+			zap.Error(err))
 		return err
 	}
 	return c.JSON(200, result)
@@ -71,16 +78,20 @@ func (s *WorkerService) GetWorkersOrArmy(workers []WorkerRepo, user *user.UserRe
 		var level int
 		if err != nil {
 			if err == sql.ErrNoRows {
-				log.WithError(err).Error("Работник не найден")
+				loger.Logger.Info("Работник не найден",
+					zap.Int("worker_id", worker.ID),
+					zap.Int("user_id", int(user.ID)))
 				level = 0
 			} else {
-				log.WithError(err).Error("Ошибка при получении работников пользователя")
+				loger.Logger.Error("Ошибка при получении работников пользователя",
+					zap.Error(err))
 				return nil, err
 			}
 		} else {
 			workerUpgrade, err := s.repo.GetUpgradeById(userWorker.IdUpgrade)
 			if err != nil {
-				log.WithError(err).Error("Ошибка при получении уровня работника")
+				loger.Logger.Error("Ошибка при получении уровня работника",
+					zap.Error(err))
 				return nil, err
 			}
 			level = workerUpgrade.Level
@@ -88,10 +99,13 @@ func (s *WorkerService) GetWorkersOrArmy(workers []WorkerRepo, user *user.UserRe
 		workerUpgradeUserLevel, err := s.repo.GetWorkerUpgrades(worker.ID, level)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				log.WithError(err).Error("Уровень работника не найден")
+				loger.Logger.Info("Уровень работника не найден",
+					zap.Int("worker_id", worker.ID),
+					zap.Int("level", level))
 				workerUpgradeUserLevel = WorkerUpgradeRepo{Profit: 0}
 			} else {
-				log.WithError(err).Error("Ошибка при получении работников пользователя")
+				loger.Logger.Error("Ошибка при получении работников пользователя",
+					zap.Error(err))
 				return nil, err
 			}
 		}
@@ -104,7 +118,8 @@ func (s *WorkerService) GetWorkersOrArmy(workers []WorkerRepo, user *user.UserRe
 				accessToUpgrade = false
 				cost = 0
 			} else {
-				log.WithError(err).Error("Ошибка при получении работников пользователя")
+				loger.Logger.Error("Ошибка при получении работников пользователя",
+					zap.Error(err))
 				return nil, err
 			}
 		} else {
@@ -139,7 +154,9 @@ func (s *WorkerService) BuyWorker(c echo.Context) error {
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
 	user, err := s.userService.GetUser(c.Request().Context(), telegramUser.ID)
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении пользователя", telegramUser.ID)
+		loger.Logger.Error("Ошибка при получении пользователя",
+			zap.Error(err),
+			zap.Int64("user_id", telegramUser.ID))
 		return err
 	}
 
@@ -152,11 +169,17 @@ func (s *WorkerService) BuyWorker(c echo.Context) error {
 			level = 1
 			upgradeLevel, err = s.repo.GetWorkerUpgrades(workerID, 1)
 			if err != nil {
-				log.WithError(err).Error("Ошибка при получении работника пользователя", workerID, user.ID)
+				loger.Logger.Error("Ошибка при получении работника пользователя",
+					zap.Error(err),
+					zap.Int("worker_id", workerID),
+					zap.Int("user_id", int(user.ID)))
 				return err
 			}
 		} else {
-			log.WithError(err).Error("Ошибка при получении работника пользователя", workerID, user.ID)
+			loger.Logger.Error("Ошибка при получении работника пользователя",
+				zap.Error(err),
+				zap.Int("worker_id", workerID),
+				zap.Int("user_id", int(user.ID)))
 			return err
 		}
 	} else {
@@ -166,14 +189,20 @@ func (s *WorkerService) BuyWorker(c echo.Context) error {
 			if err == sql.ErrNoRows {
 				return c.JSON(400, map[string]string{"error": "Уровень работника максимальный"})
 			} else {
-				log.WithError(err).Error("Ошибка при получении работника пользователя", workerID, user.ID)
+				loger.Logger.Error("Ошибка при получении работника пользователя",
+					zap.Error(err),
+					zap.Int("worker_id", workerID),
+					zap.Int("user_id", int(user.ID)))
 				return err
 			}
 		}
 		nowLevel, err := s.repo.GetWorkerUpgrades(workerID, userWorker.IdUpgrade)
 		nowProfit = nowLevel.Profit
 		if err != nil {
-			log.WithError(err).Error("Ошибка при получении работника пользователя", workerID, user.ID)
+			loger.Logger.Error("Ошибка при получении работника пользователя",
+				zap.Error(err),
+				zap.Int("worker_id", workerID),
+				zap.Int("user_id", int(user.ID)))
 			return err
 		}
 	}
@@ -184,42 +213,45 @@ func (s *WorkerService) BuyWorker(c echo.Context) error {
 
 	err = s.repo.UpdateUserBalance(int(user.ID), int(user.Balance - int64(upgradeLevel.Cost)))
 	if err != nil {
-		log.WithError(err).Error("Ошибка при обновлении баланса пользователя", user.ID)
+		loger.Logger.Error("Ошибка при обновлении баланса пользователя",
+			zap.Error(err),
+			zap.Int("user_id", int(user.ID)))
 		return err
 	}
 
 	if level == 1 {
 		err = s.repo.CreateUserWorker(int(user.ID), workerID, upgradeLevel.ID)
 		if err != nil {
-			log.WithError(err).Error("Ошибка при создании работника пользователя", user.ID, workerID)
-			return err
-		}
-		if err != nil {
-			log.WithError(err).Error("Ошибка при обновлении прибыли пользователя", user.ID)
+			loger.Logger.Error("Ошибка при создании работника пользователя",
+				zap.Error(err),
+				zap.Int("user_id", int(user.ID)),
+				zap.Int("worker_id", workerID))
 			return err
 		}
 	} else {
 		err = s.repo.UpdateUserWorker(upgradeLevel.ID, userWorker.ID)
 		if err != nil {
-			log.WithError(err).Error("Ошибка при обновлении работника пользователя", user.ID, workerID)
-			return err
-		}
-		
-		if err != nil {
-			log.WithError(err).Error("Ошибка при обновлении прибыли пользователя", user.ID)
+			loger.Logger.Error("Ошибка при обновлении работника пользователя",
+				zap.Error(err),
+				zap.Int("user_id", int(user.ID)),
+				zap.Int("worker_id", workerID))
 			return err
 		}
 	}
 	
 	err = s.repo.UpdateUserWorkerProfit(int(user.ID), int(upgradeLevel.Profit - nowProfit), int(upgradeLevel.Cost))
 	if err != nil {
-		log.WithError(err).Error("Ошибка при обновлении прибыли пользователя", user.ID)
+		loger.Logger.Error("Ошибка при обновлении прибыли пользователя",
+			zap.Error(err),
+			zap.Int("user_id", int(user.ID)))
 		return err
 	}
 
 	worker, err := s.repo.GetWorkerById(workerID)
 	if err != nil {
-		log.WithError(err).Error("Ошибка при получении работника", workerID)
+		loger.Logger.Error("Ошибка при получении работника",
+			zap.Error(err),
+			zap.Int("worker_id", workerID))
 		return err
 	}
 	if worker.Type == "worker" {

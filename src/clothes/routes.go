@@ -3,22 +3,24 @@ package clothes
 import (
 	"github.com/labstack/echo/v4"
 	"api/src/middleware"
+	"api/src/core/config"
 )
 
 type ClothesHandler struct {
 	service *ClothesService
+	config *config.Config
 }
 
-func NewClothesHandler(service *ClothesService) *ClothesHandler {
-	return &ClothesHandler{service: service}
+func NewClothesHandler(service *ClothesService, config *config.Config) *ClothesHandler {
+	return &ClothesHandler{service: service, config: config}
 }
 
-func RegisterRoutes(e *echo.Echo, service *ClothesService) {
-	handler := NewClothesHandler(service)
+func RegisterRoutes(e *echo.Echo, service *ClothesService, config *config.Config) {
+	handler := NewClothesHandler(service, config)
 	
 	clothesGroup := e.Group("/clothes")
 	clothesGroup.Use(middleware.TelegramAuth(middleware.TelegramAuthConfig{
-		BotToken: "6885676739:AAFP8P6v51rXXdQzpH04EhQNdPVpHVJ-26Y",
+		BotToken: handler.config.TELEGRAM_BOT_TOKEN,
 	}))
 	clothesGroup.GET("", handler.GetClothes)
 	clothesGroup.GET("/:id", handler.GetClothe)

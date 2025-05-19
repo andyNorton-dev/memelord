@@ -5,19 +5,14 @@ import (
 	"fmt"
 	"log"
 	_ "github.com/lib/pq"
+	"api/src/core/config"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "root"
-	password = "root"
-	dbname   = "gobd"
-)
 
-func Connect() (*sql.DB, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+
+func Connect(config *config.Config) (*sql.DB, error) {
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.DB_HOST, config.DB_PORT, config.DB_USER, config.DB_PASSWORD, config.DB_NAME)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {

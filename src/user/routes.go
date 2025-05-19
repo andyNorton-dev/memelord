@@ -4,15 +4,18 @@ import (
 	"database/sql"
 	"github.com/labstack/echo/v4"
 	"api/src/middleware"
+	"api/src/core/config"
 )
 
 type UserHandler struct {
 	service UserService
+	config *config.Config
 }
 
-func NewUserHandler(service UserService) *UserHandler {
+func NewUserHandler(service UserService, config *config.Config) *UserHandler {
 	return &UserHandler{
 		service: service,
+		config: config,
 	}
 }
 
@@ -22,7 +25,7 @@ func (h *UserHandler) RegisterRoutes(e *echo.Echo) {
 	
 	// Применяем TelegramAuth middleware ко всем роутам в группе
 	userGroup.Use(middleware.TelegramAuth(middleware.TelegramAuthConfig{
-		BotToken: "6885676739:AAFP8P6v51rXXdQzpH04EhQNdPVpHVJ-26Y",
+		BotToken: h.config.TELEGRAM_BOT_TOKEN,
 	}))
 
 	userGroup.GET("", h.GetUser)
@@ -69,10 +72,10 @@ func (h *UserHandler) TapUser(c echo.Context) error {
 	return h.service.TapUserHandler(c)
 }
 
-func SetupUser(e *echo.Echo, db *sql.DB) {
+func SetupUser(e *echo.Echo, db *sql.DB, config *config.Config) {
 	repo := NewUserRepository(db)
 	service := NewService(repo)
-	handler := NewUserHandler(service)
+	handler := NewUserHandler(service, config)
 	handler.RegisterRoutes(e)
 }
 

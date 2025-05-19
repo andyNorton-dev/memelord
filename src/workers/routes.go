@@ -3,22 +3,24 @@ package workers
 import (
 	"github.com/labstack/echo/v4"
 	"api/src/middleware"
+	"api/src/core/config"
 )
 
 type WorkerHandler struct {
 	service *WorkerService
+	config *config.Config
 }
 
-func NewWorkerHandler(service *WorkerService) *WorkerHandler {
-	return &WorkerHandler{service: service}
+func NewWorkerHandler(service *WorkerService, config *config.Config) *WorkerHandler {
+	return &WorkerHandler{service: service, config: config}
 }
 
-func RegisterRoutes(e *echo.Echo, service *WorkerService) {
-	handler := NewWorkerHandler(service)
+func RegisterRoutes(e *echo.Echo, service *WorkerService, config *config.Config) {
+	handler := NewWorkerHandler(service, config)
 	
 	workersGroup := e.Group("/workers")
 	workersGroup.Use(middleware.TelegramAuth(middleware.TelegramAuthConfig{
-		BotToken: "6885676739:AAFP8P6v51rXXdQzpH04EhQNdPVpHVJ-26Y",
+		BotToken: handler.config.TELEGRAM_BOT_TOKEN,
 	}))
 	workersGroup.GET("/worker", handler.GetWorkers)
 	workersGroup.GET("/army", handler.GetArmy)

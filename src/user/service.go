@@ -4,12 +4,11 @@ import (
 	"context"
 	"github.com/labstack/echo/v4"
 	"api/src/middleware"
-	"github.com/sirupsen/logrus"
+	"api/src/core/loger"
 	"time"
 	"sync"
+	"go.uber.org/zap"
 )
-
-var log = logrus.New()
 
 type UserService interface {
 	GetUser(ctx context.Context, tg_id int64) (*UserRepo, error)
@@ -74,7 +73,8 @@ func (s *Service) AddProfitPerHour(ctx context.Context, u *UserRepo) (int64, err
 	// Обновляем баланс и время последнего начисления
 	err := s.repo.UpdateBalanceForProfitPerHour(ctx, u.TgID, int(newBalance))
 	if err != nil {
-		log.WithError(err).Error("Ошибка при обновлении баланса")
+		loger.Logger.Error("Ошибка при обновлении баланса",
+			zap.Error(err))
 		return 0, err
 	}
 	
@@ -82,13 +82,12 @@ func (s *Service) AddProfitPerHour(ctx context.Context, u *UserRepo) (int64, err
 	u.LastProfitPerHour = time.Now()
 	u.Balance = newBalance
 	
-	log.WithFields(logrus.Fields{
-		"old_balance": u.Balance - profit,
-		"profit": profit,
-		"new_balance": newBalance,
-		"minutes_passed": minutes,
-		"profit_per_hour": u.ProfitPerHour,
-	}).Info("Обновление баланса")
+	loger.Logger.Info("Обновление баланса",
+		zap.Int64("old_balance", u.Balance - profit),
+		zap.Int64("profit", profit),
+		zap.Int64("new_balance", newBalance),
+		zap.Int64("minutes_passed", minutes),
+		zap.Int("profit_per_hour", u.ProfitPerHour))
 	
 	return newBalance, nil
 }
@@ -98,7 +97,12 @@ func (s *Service) EnergyRestoration(ctx context.Context, u *UserRepo) (int64, er
 	minutes := int64(timeDifference.Minutes())
 	intervals := minutes / 2
 	needEnergy := int64(u.MaxEnergy - u.Energy)
-	log.Info("Восстановление энергии: ", intervals, needEnergy, u.Energy)
+	
+	loger.Logger.Info("Восстановление энергии",
+		zap.Int64("intervals", intervals),
+		zap.Int64("need_energy", needEnergy),
+		zap.Int("current_energy", u.Energy))
+		
 	if intervals == 0 {
 		return int64(u.Energy), nil
 	}
@@ -107,7 +111,8 @@ func (s *Service) EnergyRestoration(ctx context.Context, u *UserRepo) (int64, er
 	}
 	err := s.repo.UpdateEnergy(ctx, u.TgID, int(intervals))
 	if err != nil {
-		log.WithError(err).Error("Ошибка при обновлении энергии")
+		loger.Logger.Error("Ошибка при обновлении энергии",
+			zap.Error(err))
 		return 0, err
 	}
 	
@@ -139,13 +144,15 @@ func (s *Service) AddProfitPerHourAndEnergyRestoration(ctx context.Context, u *U
 
 	profitResult := <-profitChan
 	if profitResult.err != nil {
-		log.WithError(profitResult.err).Error("Ошибка при добавлении прибыли")
+		loger.Logger.Error("Ошибка при добавлении прибыли",
+			zap.Error(profitResult.err))
 		return 0, 0, profitResult.err
 	}
 
 	energyResult := <-energyChan
 	if energyResult.err != nil {
-		log.WithError(energyResult.err).Error("Ошибка при восстановлении энергии")
+		loger.Logger.Error("Ошибка при восстановлении энергии",
+			zap.Error(energyResult.err))
 		return 0, 0, energyResult.err
 	}
 
@@ -218,21 +225,22 @@ func (s *Service) GetUserHandler(c echo.Context) error {
 }
 
 func (s *Service) CreateUserHandler(c echo.Context) error {
-	log.Info("Начало выполнения CreateUser")
+	loger.Logger.Info("Начало выполнения CreateUser")
 	telegramUser := c.Get("telegram_user").(*middleware.TelegramUser)
-	log.WithFields(logrus.Fields{
-		"user_id": telegramUser.ID,
-		"username": telegramUser.Username,
-	}).Info("Получен telegramUser")
+	
+	loger.Logger.Info("Получен telegramUser",
+		zap.Int64("user_id", telegramUser.ID),
+		zap.String("username", telegramUser.Username))
 	
 	user, err := s.repo.CreateUser(c.Request().Context(), telegramUser.ID, telegramUser.Username)
 	if err != nil {
-		log.WithError(err).Error("Ошибка при создании пользователя")
+		loger.Logger.Error("Ошибка при создании пользователя",
+			zap.Error(err))
 		return c.JSON(500, err.Error())
 	}
-	log.WithFields(logrus.Fields{
-		"user": user,
-	}).Info("Пользователь успешно создан")
+	
+	loger.Logger.Info("Пользователь успешно создан",
+		zap.Any("user", user))
 	return c.JSON(200, user)
 }
 
